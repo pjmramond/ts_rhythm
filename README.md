@@ -32,7 +32,38 @@ rm gene_kegg.tbl
 - 1 Genes Abundance table
 - 1 Genes-KEGG annotation table
 
-### 2) Lomb-Scargle Periodogram computation and analysis of results
+### 2) Lomb-Scargle Periodogram computation and analysis of results:
+Results table for the 8375 KEGGs looks like this:
+```
+      kegg    PNmax  Period p.value Phase
+1   K00525 0.207330 362.000   0.010   Mar
+2   K02014 0.140910 181.000   0.212   Oct
+3   K02335 0.186610 362.000   0.061   May
+4   K03046 0.284880 362.000   0.000   Apr
+5   K03043 0.223030 362.000   0.000   Apr
+6   K02337 0.088779  38.394   0.939   May
+7   K01915 0.180820 362.000   0.020   Apr
+8   K00605 0.251340 362.000   0.000   Apr
+9   K01952 0.124520  31.675   0.424   May
+10  K01652 0.111540 362.000   0.535   Apr
+```
+2857 Keggs were found to be rhythmic (PNmax > 0.1 and p.value < 0.01)
+5517 Keggs were not significantly rhythmic (over the 7 years time period)
 
+We investigated the most rhythmic KEGG's patterns over the time series:
+<img width="621" height="326" alt="Screenshot 2025-08-28 at 17 03 31" src="https://github.com/user-attachments/assets/6ebbcd29-f16c-4502-a4c7-3897da3bca19" />
+
+Its functional annotation is not very revealing:
+```
+egg Gene names          kegg annotation GN1 GN2 GN3 GN4 GN5 GN6 GN7 GN8 GN9                                    KH1
+3292 K06287        maf septum formation protein maf                                 09190 Not Included in Pathway or Brite
+                                                      KH2               KH3  KH4  KH5  KH6  KH7  KH8  KH9 KH10 KH11 KH12 KH13 KH14 KH15 KH16
+3292 09193 Unclassified: signaling and cellular processes 99978 Cell growth <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA>
+     KH17 KH18 KH19 KH20 KH21 KH22 KH23 KH24 KH25 KH26 KH27 KH28 KH29 KH30 KH31   tot.ab nb.genes
+3292 <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> 48.81385     5067
+```
+
+
+<img width="368" height="347" alt="Screenshot 2025-08-28 at 17 02 19" src="https://github.com/user-attachments/assets/98c795ad-6e2d-4c50-9226-e5a9dd8633a4" />
 
 
