@@ -24,15 +24,15 @@ rm mOLA_2009_2014_gene_annot_filtered.tbl
 rm gene_kegg.tbl
 ```
 
-###1st analyses with script: sola_2009_2014_kegg.R
-###1) Based on three objects, this script first imports and formats:
+### 1st analyses with script: sola_2009_2014_kegg.R
+### 1) Based on three objects, this script first imports and formats:
 - 1 sample info table (with dates)
 - 1 KEGG Abundance table
 - 1 KEGG Functional Annotation table
 - 1 Genes Abundance table
 - 1 Genes-KEGG annotation table
 
-###2) Lomb-Scargle Periodogram computation and analysis of results
+### 2) Lomb-Scargle Periodogram computation and analysis of results
 
 
 
