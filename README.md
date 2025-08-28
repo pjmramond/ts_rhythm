@@ -1,6 +1,6 @@
 # ts_rhythm
 
-# OG files from Lidia were pre-treated in bash before R import:
+OG files from Lidia were pre-treated in bash before R import:
 
 ```
 # Just gene-KEGG annotation
@@ -24,8 +24,7 @@ rm mOLA_2009_2014_gene_annot_filtered.tbl
 rm gene_kegg.tbl
 ```
 
-## 1st analyses with script: sola_2009_2014_kegg.R
-
+###1st analyses with script: sola_2009_2014_kegg.R
 ###1) Based on three objects, this script first imports and formats:
 - 1 sample info table (with dates)
 - 1 KEGG Abundance table
