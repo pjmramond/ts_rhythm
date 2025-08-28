@@ -50,7 +50,13 @@ Results table for the 8375 KEGGs looks like this:
 2857 Keggs were found to be rhythmic (PNmax > 0.1 and p.value < 0.01)
 5517 Keggs were not significantly rhythmic (over the 7 years time period)
 
-We investigated the most rhythmic KEGG's patterns over the time series:
+As expected, rhythmicity was well correlated to KEGG's total abundance, with rarer KEGGs having sparser distribution (potentially absent for long time periods):
+<img width="444" height="384" alt="Screenshot 2025-08-28 at 17 12 20" src="https://github.com/user-attachments/assets/11f87fab-a307-41f9-934c-836d679f230a" />
+
+We also can explore the differences in rhythmicity across KEGGs functional categories:
+<img width="908" height="641" alt="Screenshot 2025-08-28 at 17 13 52" src="https://github.com/user-attachments/assets/763b4c2f-9ad7-4606-be39-2ee9abad08ba" />
+
+We also investigated the most rhythmic KEGG's patterns over the time series:
 <img width="621" height="326" alt="Screenshot 2025-08-28 at 17 03 31" src="https://github.com/user-attachments/assets/6ebbcd29-f16c-4502-a4c7-3897da3bca19" />
 
 Its functional annotation is not very revealing:
