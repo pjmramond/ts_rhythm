@@ -62,8 +62,11 @@ egg Gene names          kegg annotation GN1 GN2 GN3 GN4 GN5 GN6 GN7 GN8 GN9     
      KH17 KH18 KH19 KH20 KH21 KH22 KH23 KH24 KH25 KH26 KH27 KH28 KH29 KH30 KH31   tot.ab nb.genes
 3292 <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> <NA> 48.81385     5067
 ```
+Next we check the patterns of the genes annotated to this KEGG (the KEGG's composition).
+5067 genes were annotated to this specific KEGG, here are their cumulated abundance over the time-series:
+<img width="889" height="414" alt="Screenshot 2025-08-28 at 17 06 34" src="https://github.com/user-attachments/assets/42562468-3b78-4b1a-8167-599254764534" />
 
-
+We note that the abundances of genes annotated to this KEGG is not equal to the abundance of the KEGG (see here across samples):
 <img width="368" height="347" alt="Screenshot 2025-08-28 at 17 02 19" src="https://github.com/user-attachments/assets/98c795ad-6e2d-4c50-9226-e5a9dd8633a4" />
 
 
