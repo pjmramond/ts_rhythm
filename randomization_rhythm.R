@@ -9,7 +9,7 @@ library(stringr)
 library(lomb)
 library(ggplot2)
 library(hydroTSM)
-library("pgirmess")
+#library("pgirmess")
 library(tidyr)
 library(seas)
 
@@ -17,7 +17,8 @@ library(seas)
 # -----------------------------------------
 
 # KEGG table
-keggs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
+#keggs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
+keggs <- read_tsv("BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
 keggs <- keggs[,colSums(is.na(keggs))<nrow(keggs)]
 keggs<-keggs[,-grep("BL",colnames(keggs))]
 keggs<-as.data.frame(keggs[rowSums(keggs[, grep("SO", colnames(keggs))])>0,])
@@ -26,7 +27,8 @@ keggs.ab<-keggs[, grep("SO", colnames(keggs))]
 
 # Functional Annotation of KEGGs
 keggs.funct<-keggs[,grep("SO|..162", colnames(keggs), invert = TRUE)]
-functs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
+#functs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
+functs <- read_tsv("BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
 functs<-as.data.frame(cbind(functs$annot,str_split_fixed(functs$`Gene name; KEGG annotation`, pattern = "; ", n = 2)))
 functs<-as.data.frame(cbind(functs,str_split_fixed(functs$V2, pattern = ", ", n=9)))
 row.names(functs)<-functs$V1
@@ -110,10 +112,7 @@ for (cb in seq_len(length(list_comb_info))){
   for (k in 11:ncol(lsp.keggs)){
     rl<-summary(randlsp(x = lsp.keggs[, c(9, k)], repeats = 99, type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
     r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[k], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[13,]), Phase = format(lsp.keggs[which.max(lsp.keggs[,k]),"Date"], "%b") ))
-    print(paste(c, k, ncol(lsp.keggs), sep = " / "))
+    print(paste(cb, k, ncol(lsp.keggs), sep = " / "))
   }
   list_comb_lsp[[paste(cb)]]<-r
 }
-
-
-
