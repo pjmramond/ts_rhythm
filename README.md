@@ -75,4 +75,113 @@ Next we check the patterns of the genes annotated to this KEGG (the KEGG's compo
 We note that the abundances of genes annotated to this KEGG is not equal to the abundance of the KEGG (see here across samples):
 <img width="368" height="347" alt="Screenshot 2025-08-28 at 17 02 19" src="https://github.com/user-attachments/assets/98c795ad-6e2d-4c50-9226-e5a9dd8633a4" />
 
+### Randomize rhythmicity with script: randomization_rhythm.R
+### 1) Create list of Year combination
+The idea of this script is to compute LSP rhythmicity for all KEGGs based on all possible random combinations of Years.
+First we create a matrix of years combinations, from 2-Years to 7-Years:
+```
+# Initialize a list to store data.frames
+Years=unique(info$Year)
+nYears=length(unique(info$Year))
+yl<-year.length(Years)
+
+# Create all unique combinations of years from 2 years to 7
+comb_list <- list()
+for (k in 2:nYears) {
+    tmp <- as.data.frame(t(combn(Years, k)))
+    colnames(tmp) <- paste0("Year", 1:k)
+    comb_list[[as.character(k)]] <- tmp
+}
+
+# Combine all into a single data.frame (with varying number of columns)
+all_combs <- bind_rows(comb_list, .id = "size" )[,-1]
+all_combs$NB <- apply(all_combs, 1, function(x) max(which(!is.na(x))))
+```
+Which gives us the following table with 120 combinations, in which each year is represented equitatively (63 times):
+```
+      Year1  Year2  Year3  Year4  Year5  Year6  Year7    NB
+  1:   2009   2010   <NA>   <NA>   <NA>   <NA>   <NA>     2
+  2:   2009   2011   <NA>   <NA>   <NA>   <NA>   <NA>     2
+  3:   2009   2012   <NA>   <NA>   <NA>   <NA>   <NA>     2
+  4:   2009   2013   <NA>   <NA>   <NA>   <NA>   <NA>     2
+  5:   2009   2014   <NA>   <NA>   <NA>   <NA>   <NA>     2
+ ---                                                       
+116:   2009   2010   2011   2013   2014   2015   <NA>     6
+117:   2009   2010   2012   2013   2014   2015   <NA>     6
+118:   2009   2011   2012   2013   2014   2015   <NA>     6
+119:   2010   2011   2012   2013   2014   2015   <NA>     6
+120:   2009   2010   2011   2012   2013   2014   2015     7
+```
+### 2) Run LSP for all combinations
+We then create 120 subdatasets using only each of these Years combinations, we create a fake consecutive "Julian Days" column that run over the year-gaps.
+We can then run the LSP algorithm and save the results for all 8374 KEGGs over the 120 Year-combinations:
+```
+list_comb_lsp<-list()
+for (cb in seq_len(length(list_comb_info))){
+  
+  # merge info on the time series with KEGGs abundances
+  lsp.keggs<-merge(list_comb_info[[cb]], t(keggs.ab), by.x = "ID", by.y = "row.names" )
+  
+  # loop the command over all Keggs
+  r=NULL
+  for (k in 11:ncol(lsp.keggs)){
+    rl<-summary(randlsp(x = lsp.keggs[, c(9, k)], repeats = 99, type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
+    r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[k], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[13,]), Phase = format(lsp.keggs[which.max(lsp.keggs[,k]),"Date"], "%b") ))
+    print(paste(cb, k, ncol(lsp.keggs), sep = " / "))
+  }
+  list_comb_lsp[[paste(cb)]]<-r
+}
+saveRDS(list_comb_lsp, "list_comb_lsp.RData")
+```
+### 3) Analysis of the results:
+```
+# results
+list_comb_lsp<-readRDS("~/Desktop/PETRIMED/ANALYSES/ts_rhythm/list_comb_lsp.RData")
+
+## format results
+# empty files
+pnmax=NULL
+period=NULL
+pv=NULL
+phase=NULL
+
+# extract and merge results per coefficient
+for (i in 1:120){
+  pnmax<-cbind(pnmax,list_comb_lsp[[i]][,2]);colnames(pnmax)[ncol(pnmax)]<-i
+  period<-cbind(period,list_comb_lsp[[i]][,3]);colnames(period)[ncol(period)]<-i
+  pv<-cbind(pv,list_comb_lsp[[i]][,4]);colnames(pv)[ncol(pv)]<-i
+  phase<-cbind(phase,list_comb_lsp[[i]][,5]);colnames(phase)[ncol(phase)]<-i
+}
+
+# format rownmaes of result table
+rownames(pnmax)<-list_comb_lsp[[i]][,1]
+rownames(period)<-list_comb_lsp[[i]][,1]
+rownames(pv)<-list_comb_lsp[[i]][,1]
+rownames(phase)<-list_comb_lsp[[i]][,1]
+
+# which combination is the best for each KEGG in terms of PNmax
+comb.PN<-data.frame(PNmax =  apply(pnmax,1, which.max))
+```
+We studied which combinations yielded the highest PNmax (rhytmicity) for each KEGG.
+We can also study which Years' removal generated the highest PNmax over all KEGGs:
+```
+# which Year's removal generate the highest PNmax?
+missing_years<-list()
+for (y in 1:120){missing_years[[y]]<-Years[!Years %in% list_comb_info[[y]]$Year]}
+
+all.KO=NULL
+for (k in rownames(comb.PN) ){all.KO<-c(all.KO,missing_years[[comb.PN[k,]]])}
+table(all.KO)
+```
+which gives us:
+```
+table(all.KO)
+all.KO
+2009 2010 2011 2012 2013 2014 2015 
+5599 5030 5615 5911 6691 6364 6494 
+```
+> It seems that the absence of the years 2013 and 2015 generated the highest PNmax for most KEGGs (6691 and 6494 over 8734).
+> Could these years harbor more perturbations than other years causing a lack of rythmicity for most KEGGs? 
+
+
 
