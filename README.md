@@ -183,5 +183,7 @@ all.KO
 > It seems that the absence of the years 2013 and 2015 generated the highest PNmax for most KEGGs (6691 and 6494 over 8734).
 > Could these years harbor more perturbations than other years causing a lack of rythmicity for most KEGGs? 
 
+Let's check the variability of environmental variables across years (source: SOMLIT SOLA):
+<img width="682" height="889" alt="Screenshot 2025-09-01 at 15 20 20" src="https://github.com/user-attachments/assets/57f1beeb-11df-4e79-a454-6aca330061ed" />
 
 
