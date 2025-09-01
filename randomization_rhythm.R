@@ -12,13 +12,14 @@ library(hydroTSM)
 #library("pgirmess")
 library(tidyr)
 library(seas)
+library(dplyr)
 
 # 1/ Import, format, and explore KEGG table
 # -----------------------------------------
 
 # KEGG table
-#keggs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
-keggs <- read_tsv("BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
+keggs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
+#keggs <- read_tsv("BBMOSOLA-common-dates-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl.hierarchy.txt",quote = "")
 keggs <- keggs[,colSums(is.na(keggs))<nrow(keggs)]
 keggs<-keggs[,-grep("BL",colnames(keggs))]
 keggs<-as.data.frame(keggs[rowSums(keggs[, grep("SO", colnames(keggs))])>0,])
@@ -27,8 +28,8 @@ keggs.ab<-keggs[, grep("SO", colnames(keggs))]
 
 # Functional Annotation of KEGGs
 keggs.funct<-keggs[,grep("SO|..162", colnames(keggs), invert = TRUE)]
-#functs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
-functs <- read_tsv("BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
+functs <- read_tsv("~/Desktop/PETRIMED/DATA/METAG/KEGG_SOLA_2009_2014/BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
+#functs <- read_tsv("BBMOSOLA-GC_250bp_KEGG.ko.lengthNorm.SCGnorm.counts.gene_name-kegg_annotation.tbl",quote = "")
 functs<-as.data.frame(cbind(functs$annot,str_split_fixed(functs$`Gene name; KEGG annotation`, pattern = "; ", n = 2)))
 functs<-as.data.frame(cbind(functs,str_split_fixed(functs$V2, pattern = ", ", n=9)))
 row.names(functs)<-functs$V1
@@ -63,7 +64,6 @@ for (k in 2:nYears) {
 }
 
 # Combine all into a single data.frame (with varying number of columns)
-library(dplyr)
 all_combs <- bind_rows(comb_list, .id = "size" )[,-1]
 all_combs$NB <- apply(all_combs, 1, function(x) max(which(!is.na(x))))
 
@@ -116,3 +116,50 @@ for (cb in seq_len(length(list_comb_info))){
   }
   list_comb_lsp[[paste(cb)]]<-r
 }
+saveRDS(list_comb_lsp, "list_comb_lsp.RData")
+
+# 4/ Analyze best combinations per KEGG
+# --------------------------------------------------------------
+
+# results
+list_comb_lsp<-readRDS("~/Desktop/PETRIMED/ANALYSES/ts_rhythm/list_comb_lsp.RData")
+
+## format results
+# empty files
+pnmax=NULL
+period=NULL
+pv=NULL
+phase=NULL
+
+# extract and merge results per coefficient
+for (i in 1:120){
+  pnmax<-cbind(pnmax,list_comb_lsp[[i]][,2]);colnames(pnmax)[ncol(pnmax)]<-i
+  period<-cbind(period,list_comb_lsp[[i]][,3]);colnames(period)[ncol(period)]<-i
+  pv<-cbind(pv,list_comb_lsp[[i]][,4]);colnames(pv)[ncol(pv)]<-i
+  phase<-cbind(phase,list_comb_lsp[[i]][,5]);colnames(phase)[ncol(phase)]<-i
+}
+
+# format rownmaes of result table
+rownames(pnmax)<-list_comb_lsp[[i]][,1]
+rownames(period)<-list_comb_lsp[[i]][,1]
+rownames(pv)<-list_comb_lsp[[i]][,1]
+rownames(phase)<-list_comb_lsp[[i]][,1]
+
+# which combination is the best for each KEGG in terms of PNmax
+comb.PN<-data.frame(PNmax =  apply(pnmax,1, which.max))
+
+# which Year's removal generate the highest PNmax?
+missing_years<-list()
+for (y in 1:120){missing_years[[y]]<-Years[!Years %in% list_comb_info[[y]]$Year]}
+missing_years
+
+all.KO=NULL
+for (k in rownames(comb.PN) ){all.KO<-c(all.KO,missing_years[[comb.PN[k,]]])}
+table(all.KO)
+
+all.years=NULL
+for (y in 1:120 ){all.years<-rbind(all.years,unlist(all_combs[y,-ncol(all_combs)],use.names=FALSE))}
+table(all.years)
+
+
+

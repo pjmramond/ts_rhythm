@@ -60,17 +60,17 @@ functs[is.na(functs$nb.genes), "nb.genes"]<-0
 lsp.keggs<-merge(info, t(keggs.ab), by.x = "ID", by.y = "row.names" )
 
 # loop the command over all Keggs
-#r=NULL
-#for (i in 9:ncol(lsp.keggs)){
-#  rl<-summary(randlsp(x = lsp.keggs[, c(4, i)], repeats = 99, type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
-#  r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[i], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[13,]) ))
-#  #rl<-summary(lsp(x = lsp.keggs[, c(4, i)],type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
-#  #r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[i], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[12,]) ))
-#  print(paste(i, ncol(lsp.keggs), sep = " / "))
-#}
-#saveRDS(r, "Desktop/PETRIMED/ANALYSES/RHYTHM/lsp_keggs_r99.RData")
-r<-readRDS("Desktop/PETRIMED/ANALYSES/RHYTHM/lsp_keggs_r99.RData")
-r<-merge(r,functs, by ="kegg" )
+r=NULL
+for (i in 9:ncol(lsp.keggs)){
+  rl<-summary(randlsp(x = lsp.keggs[, c(4, i)], repeats = 99, type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
+  r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[i], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[13,]), Phase = format(lsp.keggs[which.max(lsp.keggs[,i]),"Date"], "%b") ))
+  #rl<-summary(lsp(x = lsp.keggs[, c(4, i)],type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
+  #r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[i], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[12,]) ))
+  print(paste(i, ncol(lsp.keggs), sep = " / "))
+}
+#saveRDS(r, "~/Desktop/PETRIMED/ANALYSES/ts_rhythm/lsp_keggs_r99.RData")
+r<-readRDS("~/Desktop/PETRIMED/ANALYSES/ts_rhythm/lsp_keggs_r99.RData")
+r<-merge(r,functs, by ="kegg")
 
 # Filter rhytmic KEGGs
 r.keggs<-r[r$PNmax >= 0.1 & r$p.value < 0.01,]
@@ -92,7 +92,16 @@ r.keggs[r.keggs$PNmax == max(r.keggs$PNmax),]
 # test correlation between KEGG and Total gene abundance of the KEGG
 gene.tab<-data.frame(gene.tab = colSums(genes[rownames(genes) %in% genes.annot[grep("K06287", genes.annot$annotation) , "gene" ],]))
 gene.tab<-merge(gene.tab, lsp.keggs, by.x = "row.names", by.y = "ID")
-plot(gene.tab$K06287, gene.tab$gene.tab) # not the same values, order, but overall correlation
+
+ggplot(gene.tab, aes(x = K06287, y =gene.tab))+ # not the same values, order, but overall correlation
+  geom_point()+
+  labs(x = "KEGG Abundance", y = "Cumulated abundance of genes\nannotated to this KEGG")+
+  theme_minimal()+
+  theme(panel.border = element_rect(fill = "transparent"),
+        axis.text = element_text(size = 12),
+        axis.title  = element_text(size = 12),
+        aspect.ratio = 1)
+
 
 # plot
 functs[functs$kegg == "K06287",]
@@ -111,7 +120,7 @@ ggplot(lsp.keggs, aes(x = DATE, y = K06287))+
 m.genes<-reshape2::melt(as.matrix(genes[rownames(genes) %in% genes.annot[grep("K06287", genes.annot$annotation) , "gene" ],]))
 m.genes<-merge(info, m.genes, by.x = "ID", by.y = "Var2")
 #m.genes<-m.genes[m.genes$value>0,]
-
+unique(m.genes$Var1)
 ggplot(m.genes, aes(x = DATE, y = value, fill = Var1))+
   scale_x_datetime(date_breaks = "1 year", date_labels = "%Y", expand = c(0,0))+
   scale_y_continuous(expand = c(0,0))+
@@ -131,6 +140,7 @@ ggplot(r, aes(x =tot.ab, y =PNmax))+
   geom_smooth(method = "lm", colour = "coral3", se = FALSE)+
   theme_minimal()+
   theme(panel.border = element_rect(fill = "transparent"),
+        aspect.ratio = 1,
         axis.text = element_text(size = 12),
         axis.title  = element_text(size = 12))
 
