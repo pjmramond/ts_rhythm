@@ -206,6 +206,7 @@ ggplot(data = comb.kr, aes(y = string, x = nb.rhytmic.keggs))+
   theme(strip.text.y = element_text(angle= 0, hjust = 0))
 ```
 <img width="849" height="1021" alt="Screenshot 2025-09-02 at 10 44 25" src="https://github.com/user-attachments/assets/18d0a185-0587-4bcb-a037-96562a7b665e" />
+
 > Overall the number of rhythmic KEGGs increases with the number of years included (to reach a maximu when including the 7 years).
 > But within subsets
 
