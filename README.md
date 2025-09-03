@@ -210,3 +210,14 @@ ggplot(data = comb.kr, aes(y = string, x = nb.rhytmic.keggs))+
 > Overall the number of rhythmic KEGGs increases with the number of years included (to reach a maximu when including the 7 years).
 > But within subsets
 
+We can also study the number of significantly rhythmic KEGGs per year included and combinations of years:
+<img width="457" height="685" alt="Screenshot 2025-09-03 at 13 17 55" src="https://github.com/user-attachments/assets/f4232b47-c35d-4419-84fd-0d8570690cd4" />
+
+Additionally we can test the significativity of the difference between years within combinations of years (in case some spy is interested...):
+<img width="687" height="442" alt="2years" src="https://github.com/user-attachments/assets/cb5ea176-0c69-4899-8de1-aa88a199ce96" />
+<img width="692" height="444" alt="3years" src="https://github.com/user-attachments/assets/c3dc8a09-417c-4a21-a77d-e9ece1db3d81" />
+
+> In combinations of 2 or 3 years we can observe that including the 2013, 2014, and 2015 significantly descreases the number of rhythmic KEGGs.
+
+
+
