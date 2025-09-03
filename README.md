@@ -183,5 +183,30 @@ all.KO
 > It seems that the absence of the years 2013 and 2015 generated the highest PNmax for most KEGGs (6691 and 6494 over 8734).
 > Could these years harbor more perturbations than other years causing a lack of rythmicity for most KEGGs? 
 
+Let's check the variability of environmental variables across years (source: SOMLIT SOLA):
+<img width="682" height="889" alt="Screenshot 2025-09-01 at 15 20 20" src="https://github.com/user-attachments/assets/57f1beeb-11df-4e79-a454-6aca330061ed" />
 
+We can also study the number of significantly rhythmic KEGGs (PNmax > 0.1, p.value ≤ 0.01, period >100) per combination of years:
+```
+# results
+list_comb_lsp<-readRDS("~/Desktop/PETRIMED/ANALYSES/ts_rhythm/list_comb_lsp.RData")
+
+# filter only results
+list_comb_lsp_filtered<-list()
+for (cb in 1:120){list_comb_lsp_filtered[[cb]]<-list_comb_lsp[[cb]][list_comb_lsp[[cb]]$PNmax>0.1 &list_comb_lsp[[cb]]$p.value<=0.01 & list_comb_lsp[[cb]]$Period>100,]}
+comb.kr<-cbind(all_combs,data.frame(nb.rhytmic.keggs = unlist(lapply(list_comb_lsp_filtered,nrow))))
+comb.kr$string=apply(comb.kr[,1:7], 1, function(x) paste(x[!is.na(x)], collapse = " ") )
+
+ggplot(data = comb.kr, aes(y = string, x = nb.rhytmic.keggs))+
+  facet_grid(NB~., space = "free", scale = "free")+
+  scale_x_continuous(expand = c(0,0))+
+  geom_bar(stat = "identity", color = "steelblue4" )+
+  labs(y = "Years included in the\ncomputation of Rythmicity", x = "# of significantly rhythmic KEGGs")+
+  theme_minimal()+
+  theme(strip.text.y = element_text(angle= 0, hjust = 0))
+```
+<img width="849" height="1021" alt="Screenshot 2025-09-02 at 10 44 25" src="https://github.com/user-attachments/assets/18d0a185-0587-4bcb-a037-96562a7b665e" />
+
+> Overall the number of rhythmic KEGGs increases with the number of years included (to reach a maximu when including the 7 years).
+> But within subsets
 
