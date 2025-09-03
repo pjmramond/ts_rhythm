@@ -192,21 +192,21 @@ nb=3
 kruskalmc(m.comb.kr[m.comb.kr$NB == nb,"nb.rhytmic.keggs"], m.comb.kr[m.comb.kr$NB == nb,"value"], alpha = 0.05)
 my_comparisons <- list( c("2010", "2013"), c("2010", "2014"), c("2010", "2015"))
 
-ggplot(data = m.comb.kr, aes(x =value , y = nb.rhytmic.keggs) )+
-  facet_grid(NB~., scale = "free")+
-  geom_boxplot()+
-  labs(y = "# of significantly rhytmic KEGG per combination", x = "Year included")+
-  theme_dark()+
-  theme(legend.position = "none",panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),strip.text.y = element_text(angle = 0, hjust = 0))
-
 ggplot(data = m.comb.kr[m.comb.kr$NB == nb,], aes(x =value , y = nb.rhytmic.keggs) )+
   geom_boxplot()+
   stat_compare_means(label.y.npc = "bottom", label.x.npc = "left")+ # Add pairwise comparisons p-value
   stat_compare_means(comparisons = my_comparisons )+ # Add pairwise comparisons p-value
-  labs(y = "# of significantly rhytmic KEGG per combination", x = "Year included")+
+  labs(y = "# of significantly rhytmic KEGG per combination", x = "Year included", title = paste0("For combinations of ", nb, " years"))+
   theme_minimal()+
   theme(legend.position = "none",panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+
+ggplot(data = m.comb.kr, aes(x =value , y = nb.rhytmic.keggs) )+
+  facet_grid(NB~., scale = "free")+
+  geom_boxplot()+
+  labs(y = "# of significantly rhytmic KEGG per combination", x = "Year included")+
+  theme_get()+
+  theme(legend.position = "none",panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),strip.text.y = element_text(angle = 0, hjust = 0))
 
 # Let's explore the patterns of the environment across these Years
 env.somlit<-read.csv("~/Desktop/PETRIMED/DATA/ENV/SOLA_hydro_2001-2024.csv")
