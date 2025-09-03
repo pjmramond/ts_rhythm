@@ -3,6 +3,8 @@
 ##############################################################################
 
 # packages
+library("ggsci")
+library(RColorBrewer)
 library(readr)
 library(data.table)
 library(stringr)
@@ -13,6 +15,10 @@ library(hydroTSM)
 library(tidyr)
 library(seas)
 library(dplyr)
+library(lubridate)
+library(ggpubr)
+
+
 
 # 1/ Import, format, and explore KEGG table
 # -----------------------------------------
@@ -101,22 +107,22 @@ for(j in seq_len(nrow(all_combs))){
 # 3/ Compute lomb-scargle periodogram over all year combinations
 # --------------------------------------------------------------
 
-list_comb_lsp<-list()
-for (cb in seq_len(length(list_comb_info))){
-  
-  # merge info on the time series with KEGGs abundances
-  lsp.keggs<-merge(list_comb_info[[cb]], t(keggs.ab), by.x = "ID", by.y = "row.names" )
-  
-  # loop the command over all Keggs
-  r=NULL
-  for (k in 11:ncol(lsp.keggs)){
-    rl<-summary(randlsp(x = lsp.keggs[, c(9, k)], repeats = 99, type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
-    r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[k], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[13,]), Phase = format(lsp.keggs[which.max(lsp.keggs[,k]),"Date"], "%b") ))
-    print(paste(cb, k, ncol(lsp.keggs), sep = " / "))
-  }
-  list_comb_lsp[[paste(cb)]]<-r
-}
-saveRDS(list_comb_lsp, "list_comb_lsp.RData")
+# list_comb_lsp<-list()
+# for (cb in seq_len(length(list_comb_info))){
+# 
+#   # merge info on the time series with KEGGs abundances
+#   lsp.keggs<-merge(list_comb_info[[cb]], t(keggs.ab), by.x = "ID", by.y = "row.names" )
+# 
+#   # loop the command over all Keggs
+#   r=NULL
+#   for (k in 11:ncol(lsp.keggs)){
+#     rl<-summary(randlsp(x = lsp.keggs[, c(9, k)], repeats = 99, type = "period", from = 30, to = 1000, trace = FALSE, plot = FALSE ))
+#     r<-rbind(r,data.frame(kegg = colnames(lsp.keggs)[k], PNmax = as.numeric(rl[9,]), Period = as.numeric(rl[10,]), p.value = as.numeric(rl[13,]), Phase = format(lsp.keggs[which.max(lsp.keggs[,k]),"Date"], "%b") ))
+#     print(paste(cb, k, ncol(lsp.keggs), sep = " / "))
+#   }
+#   list_comb_lsp[[paste(cb)]]<-r
+# }
+# saveRDS(list_comb_lsp, "list_comb_lsp.RData")
 
 # 4/ Analyze best combinations per KEGG
 # --------------------------------------------------------------
@@ -160,6 +166,68 @@ table(all.KO)
 all.years=NULL
 for (y in 1:120 ){all.years<-rbind(all.years,unlist(all_combs[y,-ncol(all_combs)],use.names=FALSE))}
 table(all.years)
+
+# filter only significant results
+list_comb_lsp_filtered<-list()
+for (cb in 1:120){list_comb_lsp_filtered[[cb]]<-list_comb_lsp[[cb]][list_comb_lsp[[cb]]$PNmax>0.1 &list_comb_lsp[[cb]]$p.value<=0.01 & list_comb_lsp[[cb]]$Period>100,]}
+comb.kr<-cbind(all_combs,data.frame(nb.rhytmic.keggs = unlist(lapply(list_comb_lsp_filtered,nrow))))
+comb.kr$string=apply(comb.kr[,1:7], 1, function(x) paste(x[!is.na(x)], collapse = " ") )
+
+ggplot(data = comb.kr, aes(y = string, x = nb.rhytmic.keggs))+
+  facet_grid(NB~., space = "free", scale = "free")+
+  scale_x_continuous(expand = c(0,0))+
+  geom_bar(stat = "identity", fill = "steelblue4" )+
+  labs(y = "Years included in the\ncomputation of Rythmicity", x = "# of significantly rhythmic KEGGs\n(over 8374 KEGGs)")+
+  theme_minimal()+
+  theme(strip.text.y = element_text(angle= 0, hjust = 0))
+
+# reshape to long format
+m.comb.kr<-na.omit(reshape2::melt(comb.kr[,-ncol(comb.kr)], id.vars = c("NB", "nb.rhytmic.keggs")))
+table(m.comb.kr$value)
+ag.comb.kr<-aggregate(nb.rhytmic.keggs ~ value+NB, data = m.comb.kr, FUN = mean)
+
+# NB of year combinations
+library(pgirmess)
+nb=3
+kruskalmc(m.comb.kr[m.comb.kr$NB == nb,"nb.rhytmic.keggs"], m.comb.kr[m.comb.kr$NB == nb,"value"], alpha = 0.05)
+my_comparisons <- list( c("2010", "2013"), c("2010", "2014"), c("2010", "2015"))
+
+ggplot(data = m.comb.kr, aes(x =value , y = nb.rhytmic.keggs) )+
+  facet_grid(NB~., scale = "free")+
+  geom_boxplot()+
+  labs(y = "# of significantly rhytmic KEGG per combination", x = "Year included")+
+  theme_dark()+
+  theme(legend.position = "none",panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),strip.text.y = element_text(angle = 0, hjust = 0))
+
+ggplot(data = m.comb.kr[m.comb.kr$NB == nb,], aes(x =value , y = nb.rhytmic.keggs) )+
+  geom_boxplot()+
+  stat_compare_means(label.y.npc = "bottom", label.x.npc = "left")+ # Add pairwise comparisons p-value
+  stat_compare_means(comparisons = my_comparisons )+ # Add pairwise comparisons p-value
+  labs(y = "# of significantly rhytmic KEGG per combination", x = "Year included")+
+  theme_minimal()+
+  theme(legend.position = "none",panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank())
+
+# Let's explore the patterns of the environment across these Years
+env.somlit<-read.csv("~/Desktop/PETRIMED/DATA/ENV/SOLA_hydro_2001-2024.csv")
+env<-env.somlit[,grep("q|DN|DC", colnames(env.somlit),invert = TRUE)]
+env<-env[, c(match(c("DATE","month", "year"), colnames(env)), 11:23)]
+env<-env[env$year %in% Years,]
+menv<-reshape2::melt(env, id.vars = c("DATE", "month", "year") )
+menv$Date<-as.Date(menv$DATE, format = "%Y-%m-%d")
+menv$JD<-as.numeric(format(menv$Date, "%j"))
+menv$Year<-factor(as.character(menv$year), levels = rev(Years), ordered = TRUE)
+
+ggplot(data = menv, aes(x = JD, y = value, color = Year, group = Year) )+
+  facet_grid(variable~., scale = "free")+
+  geom_line(linewidth = 0.6)+
+  labs(x = "", y="")+
+  scale_x_continuous(expand = c(0,0))+
+  scale_color_tron()+
+  theme_minimal()+
+  theme(strip.text.y = element_text(angle= 0, hjust = 0))
+
+
 
 
 
